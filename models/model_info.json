@@ -1,0 +1,11 @@
+{
+  "accuracy": 0.959349593495935,
+  "loss": 0.11132669681683183,
+  "epochs": 50,
+  "architecture": "Deep Neural Network (12-128-64-32-2)",
+  "test_samples": 123,
+  "precision_healthy": 0.96,
+  "recall_healthy": 1.0,
+  "precision_hepatitis": 1.0,
+  "recall_hepatitis": 0.67
+}
