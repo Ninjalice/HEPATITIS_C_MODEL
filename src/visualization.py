@@ -1,21 +1,15 @@
-"""
-Visualization utilities for the hepatitis predictor
-"""
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 from sklearn.metrics import confusion_matrix, roc_curve, auc, precision_recall_curve
 import pandas as pd
 
-# Set style
 plt.style.use('default')
 sns.set_palette("husl")
 
 def plot_data_overview(df):
-    """Plot basic data overview"""
     fig, axes = plt.subplots(2, 2, figsize=(15, 10))
     
-    # Target distribution
     if 'Category' in df.columns:
         df['Category'].value_counts().plot(kind='bar', ax=axes[0,0])
         axes[0,0].set_title('Disease Categories')
@@ -23,19 +17,16 @@ def plot_data_overview(df):
         axes[0,0].set_ylabel('Count')
         axes[0,0].tick_params(axis='x', rotation=45)
     
-    # Age distribution
     if 'Age' in df.columns:
         df['Age'].hist(bins=20, ax=axes[0,1])
         axes[0,1].set_title('Age Distribution')
         axes[0,1].set_xlabel('Age (years)')
         axes[0,1].set_ylabel('Frequency')
     
-    # Sex distribution
     if 'Sex' in df.columns:
         df['Sex'].value_counts().plot(kind='pie', ax=axes[1,0], autopct='%1.1f%%')
         axes[1,0].set_title('Sex Distribution')
     
-    # Missing values
     missing = df.isnull().sum()
     missing = missing[missing > 0]
     if len(missing) > 0:
@@ -51,15 +42,11 @@ def plot_data_overview(df):
     return fig
 
 def plot_correlation_matrix(df):
-    """Plot correlation matrix of numeric features"""
-    # Select only numeric columns
     numeric_cols = df.select_dtypes(include=[np.number]).columns
     
     if len(numeric_cols) > 1:
         plt.figure(figsize=(12, 10))
         correlation_matrix = df[numeric_cols].corr()
-        
-        # Create mask for upper triangle
         mask = np.triu(np.ones_like(correlation_matrix, dtype=bool))
         
         sns.heatmap(correlation_matrix, mask=mask, annot=True, cmap='coolwarm', 
@@ -72,7 +59,6 @@ def plot_correlation_matrix(df):
         return None
 
 def plot_feature_distributions(df, target_col='target'):
-    """Plot feature distributions by target class"""
     numeric_cols = ['ALB', 'ALP', 'ALT', 'AST', 'BIL', 'CHE', 'CHOL', 'CREA', 'GGT', 'PROT']
     available_cols = [col for col in numeric_cols if col in df.columns]
     
@@ -101,7 +87,6 @@ def plot_feature_distributions(df, target_col='target'):
                 df[feature].hist(bins=20, ax=axes[i])
                 axes[i].set_title(f'{feature} Distribution')
     
-    # Hide unused subplots
     for i in range(len(available_cols), len(axes)):
         axes[i].set_visible(False)
     
@@ -109,10 +94,8 @@ def plot_feature_distributions(df, target_col='target'):
     return fig
 
 def plot_training_history(history):
-    """Plot training history"""
     fig, axes = plt.subplots(1, 2, figsize=(15, 5))
-    
-    # Loss
+
     axes[0].plot(history['train_loss'], label='Training Loss', linewidth=2)
     axes[0].plot(history['val_loss'], label='Validation Loss', linewidth=2)
     axes[0].set_title('Model Loss')
@@ -121,7 +104,6 @@ def plot_training_history(history):
     axes[0].legend()
     axes[0].grid(True, alpha=0.3)
     
-    # Accuracy
     axes[1].plot(history['train_acc'], label='Training Accuracy', linewidth=2)
     axes[1].plot(history['val_acc'], label='Validation Accuracy', linewidth=2)
     axes[1].set_title('Model Accuracy')
@@ -134,7 +116,6 @@ def plot_training_history(history):
     return fig
 
 def plot_confusion_matrix(y_true, y_pred, class_names=['Healthy', 'Hepatitis C']):
-    """Plot confusion matrix"""
     cm = confusion_matrix(y_true, y_pred)
     
     plt.figure(figsize=(8, 6))
@@ -143,8 +124,7 @@ def plot_confusion_matrix(y_true, y_pred, class_names=['Healthy', 'Hepatitis C']
     plt.title('Confusion Matrix')
     plt.xlabel('Predicted')
     plt.ylabel('Actual')
-    
-    # Add accuracy information
+
     accuracy = np.trace(cm) / np.sum(cm)
     plt.figtext(0.1, 0.02, f'Overall Accuracy: {accuracy:.3f}', fontsize=12)
     
@@ -152,7 +132,6 @@ def plot_confusion_matrix(y_true, y_pred, class_names=['Healthy', 'Hepatitis C']
     return plt.gcf()
 
 def plot_roc_curve(y_true, y_probs):
-    """Plot ROC curve"""
     fpr, tpr, _ = roc_curve(y_true, y_probs[:, 1])
     roc_auc = auc(fpr, tpr)
     
@@ -170,7 +149,6 @@ def plot_roc_curve(y_true, y_probs):
     return plt.gcf()
 
 def plot_precision_recall_curve(y_true, y_probs):
-    """Plot Precision-Recall curve"""
     precision, recall, _ = precision_recall_curve(y_true, y_probs[:, 1])
     pr_auc = auc(recall, precision)
     
@@ -187,10 +165,7 @@ def plot_precision_recall_curve(y_true, y_probs):
     return plt.gcf()
 
 def plot_prediction_confidence(y_true, y_probs, class_names=['Healthy', 'Hepatitis C']):
-    """Plot prediction confidence distribution"""
     fig, axes = plt.subplots(1, 2, figsize=(15, 5))
-    
-    # Confidence by predicted class
     y_pred = np.argmax(y_probs, axis=1)
     max_probs = np.max(y_probs, axis=1)
     
@@ -205,8 +180,7 @@ def plot_prediction_confidence(y_true, y_probs, class_names=['Healthy', 'Hepatit
     axes[0].set_ylabel('Frequency')
     axes[0].legend()
     axes[0].grid(True, alpha=0.3)
-    
-    # Confidence by true class
+
     for class_idx in [0, 1]:
         mask = y_true == class_idx
         if np.any(mask):
