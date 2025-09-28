@@ -7,6 +7,9 @@ from sklearn.impute import SimpleImputer
 def load_raw_data(filepath='data/raw/hepatitis_data.csv'):
     try:
         df = pd.read_csv(filepath)
+        # Rename the unnamed index column to Patient ID
+        if 'Unnamed: 0' in df.columns:
+            df = df.rename(columns={'Unnamed: 0': 'Patient ID'})
         print(f"Dataset loaded successfully: {df.shape}")
         return df
     except FileNotFoundError:
@@ -33,6 +36,8 @@ def clean_data(df):
         return None
     data = df.copy()
 
+    # Keep Patient ID column for identification
+    # Remove it only if needed for modeling
     if 'Unnamed: 0' in data.columns:
         data = data.drop('Unnamed: 0', axis=1)
     

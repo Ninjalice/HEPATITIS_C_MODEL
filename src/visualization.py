@@ -5,35 +5,61 @@ from sklearn.metrics import confusion_matrix, roc_curve, auc, precision_recall_c
 import pandas as pd
 
 plt.style.use('default')
-sns.set_palette("husl")
+sns.set_palette("inferno")
 
 def plot_data_overview(df):
     fig, axes = plt.subplots(2, 2, figsize=(15, 10))
     
     if 'Category' in df.columns:
-        df['Category'].value_counts().plot(kind='bar', ax=axes[0,0])
+        category_counts = df['Category'].value_counts()
+        colors = sns.color_palette("inferno", len(category_counts))
+        
+        # Create a single stacked bar
+        bottom = 0
+        bar_width = 0.6
+        for i, (category, count) in enumerate(category_counts.items()):
+            axes[0,0].bar(['Total'], [count], bottom=bottom, color=colors[i], 
+                         label=f'{category}: {count}', width=bar_width)
+            bottom += count
+        
         axes[0,0].set_title('Disease Categories')
-        axes[0,0].set_xlabel('Category')
+        axes[0,0].set_xlabel('Population')
         axes[0,0].set_ylabel('Count')
-        axes[0,0].tick_params(axis='x', rotation=45)
+        axes[0,0].legend(loc='lower left')
+        axes[0,0].tick_params(axis='x', rotation=0)
     
     if 'Age' in df.columns:
-        df['Age'].hist(bins=20, ax=axes[0,1])
+        df['Age'].hist(bins=20, ax=axes[0,1], color=sns.color_palette("inferno", 10)[0])
         axes[0,1].set_title('Age Distribution')
         axes[0,1].set_xlabel('Age (years)')
         axes[0,1].set_ylabel('Frequency')
     
     if 'Sex' in df.columns:
-        df['Sex'].value_counts().plot(kind='pie', ax=axes[1,0], autopct='%1.1f%%')
+        sex_counts = df['Sex'].value_counts()
+        colors = sns.color_palette("inferno", len(sex_counts))
+        
+        # Create a single stacked bar
+        bottom = 0
+        bar_width = 0.6
+        for i, (sex, count) in enumerate(sex_counts.items()):
+            axes[1,0].bar(['Total'], [count], bottom=bottom, color=colors[i], 
+                         label=f'{sex}: {count}', width=bar_width)
+            bottom += count
+        
         axes[1,0].set_title('Sex Distribution')
+        axes[1,0].set_xlabel('Population')
+        axes[1,0].set_ylabel('Count')
+        axes[1,0].legend()
+        axes[1,0].tick_params(axis='x', rotation=0)
     
     missing = df.isnull().sum()
     missing = missing[missing > 0]
     if len(missing) > 0:
-        missing.plot(kind='bar', ax=axes[1,1])
+        missing.plot(kind='bar', ax=axes[1,1], color=sns.color_palette("inferno", len(missing)))
         axes[1,1].set_title('Missing Values by Column')
         axes[1,1].set_ylabel('Count')
         axes[1,1].tick_params(axis='x', rotation=45)
+        axes[1,1].yaxis.set_major_locator(plt.MaxNLocator(integer=True))
     else:
         axes[1,1].text(0.5, 0.5, 'No Missing Values', ha='center', va='center', transform=axes[1,1].transAxes)
         axes[1,1].set_title('Missing Values')
@@ -42,16 +68,34 @@ def plot_data_overview(df):
     return fig
 
 def plot_correlation_matrix(df):
+    from scipy.cluster.hierarchy import linkage, dendrogram
+    from scipy.spatial.distance import squareform
+    
     numeric_cols = df.select_dtypes(include=[np.number]).columns
     
     if len(numeric_cols) > 1:
         plt.figure(figsize=(12, 10))
         correlation_matrix = df[numeric_cols].corr()
-        mask = np.triu(np.ones_like(correlation_matrix, dtype=bool))
         
-        sns.heatmap(correlation_matrix, mask=mask, annot=True, cmap='coolwarm', 
+        # Perform hierarchical clustering on the correlation matrix
+        # Convert correlation to distance (1 - |correlation|)
+        distance_matrix = 1 - np.abs(correlation_matrix)
+        condensed_distances = squareform(distance_matrix, checks=False)
+        linkage_matrix = linkage(condensed_distances, method='average')
+        
+        # Get the order from clustering
+        dendro = dendrogram(linkage_matrix, labels=correlation_matrix.columns, no_plot=True)
+        cluster_order = dendro['leaves']
+        
+        # Reorder the correlation matrix
+        ordered_corr = correlation_matrix.iloc[cluster_order, cluster_order]
+        
+        # Create mask for upper triangle
+        mask = np.triu(np.ones_like(ordered_corr, dtype=bool))
+        
+        sns.heatmap(ordered_corr, mask=mask, annot=True, cmap='inferno', 
                    center=0, square=True, fmt='.2f')
-        plt.title('Feature Correlation Matrix')
+        plt.title('Feature Correlation Matrix (Clustered)')
         plt.tight_layout()
         return plt.gcf()
     else:
@@ -78,7 +122,7 @@ def plot_feature_distributions(df, target_col='target'):
                 for target_value in df[target_col].unique():
                     subset = df[df[target_col] == target_value][feature]
                     label = 'Healthy' if target_value == 0 else 'Hepatitis C'
-                    axes[i].hist(subset, alpha=0.7, label=label, bins=20)
+                    axes[i].hist(subset, alpha=0.7, label=label, bins=20, color=sns.color_palette("inferno", 2)[target_value])
                 axes[i].set_title(f'{feature} Distribution')
                 axes[i].set_xlabel(feature)
                 axes[i].set_ylabel('Frequency')
@@ -93,19 +137,62 @@ def plot_feature_distributions(df, target_col='target'):
     plt.tight_layout()
     return fig
 
+def plot_violin_with_outliers(df, numeric_cols=None):
+    """
+    Create violin plots with overlaid box plots to show outliers for each numeric feature.
+    
+    Parameters:
+    df: DataFrame containing the data
+    numeric_cols: List of column names to plot. If None, uses default hepatitis C features.
+    
+    Returns:
+    matplotlib figure object
+    """
+    if numeric_cols is None:
+        numeric_cols = ['Age','ALB','ALP','ALT','AST','BIL','CHE','CHOL','CREA','GGT','PROT']
+    
+    # Filter columns that exist in the dataframe
+    available_cols = [col for col in numeric_cols if col in df.columns]
+    
+    if not available_cols:
+        print("No numeric columns found")
+        return None
+    
+    # Create subplots arranged horizontally
+    fig, axes = plt.subplots(1, len(available_cols), figsize=(20, 6))
+    colors = sns.color_palette("inferno", len(available_cols))
+    
+    # Handle case where there's only one column
+    if len(available_cols) == 1:
+        axes = [axes]
+    
+    for i, col in enumerate(available_cols):
+        # Create violin plot
+        sns.violinplot(y=df[col], ax=axes[i], color=colors[i], alpha=0.7)
+        # Add box plot to show outliers and quartiles
+        sns.boxplot(y=df[col], ax=axes[i], width=0.3, boxprops={'facecolor':'None'}, 
+                   showfliers=True, flierprops={'marker':'o', 'markersize':3, 'markerfacecolor':'red'})
+        axes[i].set_title(col, fontsize=12)
+        axes[i].set_xlabel('')
+        axes[i].set_ylabel('Values' if i == 0 else '')
+    
+    plt.suptitle("Violin Plots with Outliers for Each Feature", fontsize=16, y=1.02)
+    plt.tight_layout()
+    return fig
+
 def plot_training_history(history):
     fig, axes = plt.subplots(1, 2, figsize=(15, 5))
 
-    axes[0].plot(history['train_loss'], label='Training Loss', linewidth=2)
-    axes[0].plot(history['val_loss'], label='Validation Loss', linewidth=2)
+    axes[0].plot(history['train_loss'], label='Training Loss', linewidth=2, color=sns.color_palette("inferno", 10)[0])
+    axes[0].plot(history['val_loss'], label='Validation Loss', linewidth=2, color=sns.color_palette("inferno", 10)[-1])
     axes[0].set_title('Model Loss')
     axes[0].set_xlabel('Epoch')
     axes[0].set_ylabel('Loss')
     axes[0].legend()
     axes[0].grid(True, alpha=0.3)
-    
-    axes[1].plot(history['train_acc'], label='Training Accuracy', linewidth=2)
-    axes[1].plot(history['val_acc'], label='Validation Accuracy', linewidth=2)
+
+    axes[1].plot(history['train_acc'], label='Training Accuracy', linewidth=2, color=sns.color_palette("inferno", 10)[0])
+    axes[1].plot(history['val_acc'], label='Validation Accuracy', linewidth=2, color=sns.color_palette("inferno", 10)[-1])
     axes[1].set_title('Model Accuracy')
     axes[1].set_xlabel('Epoch')
     axes[1].set_ylabel('Accuracy (%)')
@@ -115,16 +202,38 @@ def plot_training_history(history):
     plt.tight_layout()
     return fig
 
-def plot_confusion_matrix(y_true, y_pred, class_names=['Healthy', 'Hepatitis C']):
+def plot_confusion_matrix(y_true, y_pred, class_names=['No Hepatitis C', 'Hepatitis C'], use_percentages=True):
+    """
+    Plot confusion matrix with option for percentages or absolute values.
+    
+    Parameters:
+    y_true: True labels
+    y_pred: Predicted labels  
+    class_names: List of class names for labels
+    use_percentages: If True, show percentages by true class; if False, show absolute counts
+    
+    Returns:
+    matplotlib figure object
+    """
     cm = confusion_matrix(y_true, y_pred)
     
     plt.figure(figsize=(8, 6))
-    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
-                xticklabels=class_names, yticklabels=class_names)
-    plt.title('Confusion Matrix')
-    plt.xlabel('Predicted')
-    plt.ylabel('Actual')
+    
+    if use_percentages:
+        # Calculate percentage confusion matrix (row-wise normalization)
+        cm_percent = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis] * 100
+        sns.heatmap(cm_percent, annot=True, fmt='.1f', cmap='inferno',
+                    xticklabels=class_names, yticklabels=class_names)
+        plt.title('Confusion Matrix (Percentages)', fontsize=16)
+    else:
+        sns.heatmap(cm, annot=True, fmt='d', cmap='inferno',
+                    xticklabels=class_names, yticklabels=class_names)
+        plt.title('Confusion Matrix (Counts)', fontsize=16)
+    
+    plt.xlabel('Predicted', fontsize=12)
+    plt.ylabel('Actual', fontsize=12)
 
+    # Add accuracy information
     accuracy = np.trace(cm) / np.sum(cm)
     plt.figtext(0.1, 0.02, f'Overall Accuracy: {accuracy:.3f}', fontsize=12)
     
