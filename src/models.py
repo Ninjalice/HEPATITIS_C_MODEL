@@ -5,6 +5,7 @@ from torch.utils.data import Dataset, DataLoader, TensorDataset
 import numpy as np
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 import pickle
+from sklearn.base import BaseEstimator, ClassifierMixin
 import time
 
 class HepatitisDataset(Dataset):
@@ -311,3 +312,51 @@ def load_model(filepath: str, model_class: type[HepatitisNet] = HepatitisNet, in
     model.eval()
     
     return model, checkpoint.get('additional_info', None)
+
+class TorchWrapper(BaseEstimator, ClassifierMixin):
+    """
+    A wrapper to make PyTorch models compatible with scikit-learn.
+    
+    Parameters:
+    -----------
+    model : HepatitisNet
+        The PyTorch model instance.
+    device : str
+        Device to run inference on ('cpu' or 'cuda').
+    classes : array-like
+        Class labels for the classifier.
+
+    Attributes:
+    -----------
+    model : HepatitisNet
+        The PyTorch model instance.
+    device : str
+        Device to run inference on ('cpu' or 'cuda').
+    classes_ : array-like
+        Class labels for the classifier.
+
+    Examples:
+    ---------
+    >>> model, _ = load_model('models/hepatitis_model.pth')
+    >>> wrapper = TorchWrapper(model, device='cuda', classes=[0, 1])
+    >>> CalibrationDisplay.from_estimator(wrapper, X_test, y_test, n_bins=10)
+    """
+
+    def __init__(self, model: type[HepatitisNet], device: str, classes: any):
+        self.model = model
+        self.device = device
+        self.classes_ = classes
+    
+    def fit(self, X: np.ndarray, y: np.ndarray) -> type[TorchWrapper]:
+        return self
+    
+    def predict_proba(self, X: np.ndarray) -> np.ndarray:
+        X_tensor = torch.FloatTensor(X).to(self.device)
+        with torch.no_grad():
+            outputs = self.model(X_tensor)
+            probs = torch.softmax(outputs, dim=1).cpu().numpy()
+        return probs
+    
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        return np.argmax(self.predict_proba(X), axis=1)
+
