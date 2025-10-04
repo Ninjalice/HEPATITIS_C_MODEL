@@ -8,18 +8,61 @@ import pickle
 import time
 
 class HepatitisDataset(Dataset):
-    def __init__(self, X, y):
+    """
+    Custom Dataset for Hepatitis data.
+
+    Parameters:
+    -----------
+    X : np.ndarray or pd.DataFrame
+        Feature matrix.
+    y : np.ndarray or pd.Series    
+        Target vector.
+
+    Attributes:
+    -----------
+    X : torch.FloatTensor
+        Feature matrix as a FloatTensor.
+    y : torch.LongTensor
+        Target vector as a LongTensor.
+    """
+
+    def __init__(self, X: np.ndarray, y: np.ndarray):
         self.X = torch.FloatTensor(X)
         self.y = torch.LongTensor(y.values if hasattr(y, 'values') else y)
     
     def __len__(self):
         return len(self.X)
     
-    def __getitem__(self, idx):
+    def __getitem__(self, idx: int):
         return self.X[idx], self.y[idx]
 
 class HepatitisNet(nn.Module):
-    def __init__(self, input_size=12, hidden_sizes=[128, 64, 32], num_classes=2, dropout_rate=0.3):
+    """
+    Neural Network for Hepatitis C classification.
+
+    Parameters:
+    -----------
+    input_size : int
+        Number of input features.
+    hidden_sizes : list of int
+        List of hidden layer sizes.
+    num_classes : int
+        Number of output classes.
+    dropout_rate : float
+        Dropout rate for regularization.
+
+    Attributes:
+    -----------
+    network : nn.Sequential
+        The sequential model containing all layers.
+    input_size : int
+        Number of input features.
+    num_classes : int
+        Number of output classes.
+    """
+
+
+    def __init__(self, input_size: int = 12, hidden_sizes: list = [128, 64, 32], num_classes: int = 2, dropout_rate: float = 0.3):
         super(HepatitisNet, self).__init__()
         
         self.input_size = input_size
@@ -52,16 +95,37 @@ class HepatitisNet(nn.Module):
                 nn.init.constant_(module.weight, 1)
                 nn.init.constant_(module.bias, 0)
     
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.network(x)
 
 class ModelTrainer:
-    def __init__(self, model, device='cpu'):
+    """
+    Class to handle training and validation of the HepatitisNet model.
+
+    Parameters:
+    -----------
+    model : nn.Module
+        The neural network model to be trained.
+    device : str
+        Device to run the training on ('cpu' or 'cuda').
+    
+    Attributes:
+    -----------
+    model : nn.Module
+        The neural network model to be trained.
+    device : str
+        Device to run the training on ('cpu' or 'cuda').
+    history : dict
+        Dictionary to store training history.
+    """
+
+
+    def __init__(self, model: nn.Module, device: str = 'cpu'):
         self.model = model.to(device)
         self.device = device
         self.history = {'train_loss': [], 'train_acc': [], 'val_loss': [], 'val_acc': []}
-    
-    def train_epoch(self, train_loader, criterion, optimizer):
+
+    def train_epoch(self, train_loader: DataLoader, criterion: nn.Module, optimizer: optim.Optimizer) -> tuple[float, float]:
         self.model.train()
         total_loss = 0
         correct = 0
@@ -82,8 +146,8 @@ class ModelTrainer:
             total += target.size(0)
         
         return total_loss / len(train_loader), 100. * correct / total
-    
-    def validate_epoch(self, val_loader, criterion):
+
+    def validate_epoch(self, val_loader: DataLoader, criterion: nn.Module) -> tuple[float, float]:
         self.model.eval()
         total_loss = 0
         correct = 0
@@ -101,8 +165,8 @@ class ModelTrainer:
                 total += target.size(0)
         
         return total_loss / len(val_loader), 100. * correct / total
-    
-    def train(self, train_loader, val_loader, epochs=50, learning_rate=0.001):
+
+    def train(self, train_loader: DataLoader, val_loader: DataLoader, epochs: int = 50, learning_rate: float = 0.001) -> dict:
         criterion = nn.CrossEntropyLoss()
         optimizer = optim.Adam(self.model.parameters(), lr=learning_rate, weight_decay=1e-4)
         scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=5)
@@ -148,7 +212,30 @@ class ModelTrainer:
         
         return self.history
 
-def evaluate_model(model, test_loader, device='cpu'):
+def evaluate_model(model: nn.Module, test_loader: DataLoader, device: str = 'cpu') -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """
+    Evaluate the model on the test dataset.
+    
+    Parameters:
+    -----------
+    model : nn.Module
+        The trained model to be evaluated.
+    test_loader : DataLoader
+        DataLoader for the test dataset.
+    device : str
+        Device to run the evaluation on (default: 'cpu').
+
+    Returns:
+    -----------
+    tuple[np.ndarray, np.ndarray, np.ndarray]
+        - y_true: Ground truth labels.
+        - y_pred: Predicted labels.
+        - y_probs: Predicted probabilities.
+
+    Examples:
+    ---------
+    >>> y_true, y_pred, y_probs = evaluate_model(model, test_loader, device='cuda')
+    """
     model.eval()
     y_true = []
     y_pred = []
@@ -167,7 +254,25 @@ def evaluate_model(model, test_loader, device='cpu'):
     
     return np.array(y_true), np.array(y_pred), np.array(y_probs)
 
-def save_model(model, filepath, additional_info=None):
+def save_model(model: nn.Module, filepath: str, additional_info: dict = None) -> None:
+    """
+    Save the model to a file.
+
+    Parameters:
+    -----------
+    model : nn.Module
+        The model to be saved.
+    filepath : str
+        Path to the file where the model will be saved.
+    additional_info : dict, optional
+        Any additional information to save with the model (e.g., training parameters).
+        
+
+    Examples:
+    ---------
+    >>> save_model(model, 'models/hepatitis_model.pth', {'input_size': 12, 'num_classes': 2})
+    """
+
     torch.save({
         'model_state_dict': model.state_dict(),
         'model_class': model.__class__.__name__,
@@ -175,7 +280,30 @@ def save_model(model, filepath, additional_info=None):
     }, filepath, _use_new_zipfile_serialization=False)
     print(f"Model saved to: {filepath}")
 
-def load_model(filepath, model_class=HepatitisNet, input_size=12):
+def load_model(filepath: str, model_class: type[HepatitisNet] = HepatitisNet, input_size: int = 12) -> tuple[nn.Module, dict]:
+    """
+    Load a model from a file.
+    
+    Parameters:
+    -----------
+    filepath : str
+        Path to the file from which the model will be loaded.
+    model_class : type
+        The class of the model to be loaded (default: HepatitisNet).
+    input_size : int
+        Number of input features (default: 12).
+
+    Returns:
+    -----------
+    tuple[nn.Module, dict]
+        - model: The loaded model.
+        - additional_info: Any additional information saved with the model.
+    
+    Examples:
+    ---------
+    >>> model, info = load_model('models/hepatitis_model.pth')
+    >>> print(info)
+    """
     checkpoint = torch.load(filepath, map_location='cpu', weights_only=False)
     
     model = model_class(input_size=input_size)

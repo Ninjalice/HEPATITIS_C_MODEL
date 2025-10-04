@@ -202,18 +202,25 @@ def plot_training_history(history):
     plt.tight_layout()
     return fig
 
-def plot_confusion_matrix(y_true, y_pred, class_names=['No Hepatitis C', 'Hepatitis C'], use_percentages=True):
+def plot_confusion_matrix(y_true: np.ndarray, y_pred: np.ndarray, class_names: list[str] = ['No Hepatitis C', 'Hepatitis C'], use_percentages: bool = True) -> plt.Figure:
     """
     Plot confusion matrix with option for percentages or absolute values.
     
     Parameters:
-    y_true: True labels
-    y_pred: Predicted labels  
-    class_names: List of class names for labels
-    use_percentages: If True, show percentages by true class; if False, show absolute counts
-    
+    -----------
+    y_true: np.ndarray
+        Ground truth labels.
+    y_pred: np.ndarray
+        Predicted labels
+    class_names: string
+        List of class names for labels
+    use_percentages: bool
+        If True, show percentages by true class; if False, show absolute counts
+
     Returns:
-    matplotlib figure object
+    --------
+    plt.Figure
+        Matplotlib figure object containing the confusion matrix plot.
     """
     cm = confusion_matrix(y_true, y_pred)
     
@@ -240,7 +247,28 @@ def plot_confusion_matrix(y_true, y_pred, class_names=['No Hepatitis C', 'Hepati
     plt.tight_layout()
     return plt.gcf()
 
-def plot_roc_curve(y_true, y_probs):
+def plot_roc_curve(y_true: np.ndarray, y_probs: np.ndarray) -> plt.Figure:
+    """
+    Plot ROC curve with AUC.
+
+    Parameters:
+    -----------
+    y_true: np.ndarray
+        Ground truth binary labels.
+    y_probs: np.ndarray
+        Predicted probabilities for the positive class.
+
+    Returns:
+    --------
+    plt.Figure
+        Matplotlib figure object containing the ROC curve plot.
+
+    Examples:
+    ---------
+    >>> fig = plot_roc_curve(y_true, y_probs)
+    >>> fig.show()
+    """
+
     fpr, tpr, _ = roc_curve(y_true, y_probs[:, 1])
     roc_auc = auc(fpr, tpr)
     
@@ -257,7 +285,27 @@ def plot_roc_curve(y_true, y_probs):
     plt.tight_layout()
     return plt.gcf()
 
-def plot_precision_recall_curve(y_true, y_probs):
+def plot_precision_recall_curve(y_true: np.ndarray, y_probs: np.ndarray) -> plt.Figure:
+    """
+    Plot precision-recall curve with AUC.
+
+    Parameters:
+    -----------
+    y_true: np.ndarray
+        Ground truth binary labels.
+    y_probs: np.ndarray
+        Predicted probabilities for the positive class.
+
+    Returns:
+    --------
+    plt.Figure
+        Matplotlib figure object containing the precision-recall curve plot.
+
+    Examples:
+    ---------
+    >>> fig = plot_precision_recall_curve(y_true, y_probs)
+    >>> fig.show()
+    """
     precision, recall, _ = precision_recall_curve(y_true, y_probs[:, 1])
     pr_auc = auc(recall, precision)
     
@@ -273,7 +321,30 @@ def plot_precision_recall_curve(y_true, y_probs):
     plt.tight_layout()
     return plt.gcf()
 
-def plot_prediction_confidence(y_true, y_probs, class_names=['Healthy', 'Hepatitis C']):
+def plot_prediction_confidence(y_true: np.ndarray, y_probs: np.ndarray, class_names: list[str] = ['Healthy', 'Hepatitis C']) -> plt.Figure:
+    """
+    Plot histograms of prediction confidence for each class, separated by predicted and true labels.
+
+    Parameters:
+    -----------
+    y_true: np.ndarray
+        Ground truth binary labels.
+    y_probs: np.ndarray
+        Predicted probabilities for each class (shape: [n_samples, n_classes]).
+    class_names: list of str
+        Names of the classes for labeling.
+
+    Returns:
+    --------
+    plt.Figure
+        Matplotlib figure object containing the prediction confidence histograms.
+
+    Examples:
+    ---------
+    >>> fig = plot_prediction_confidence(y_true, y_probs)
+    >>> fig.show()
+    """
+    
     fig, axes = plt.subplots(1, 2, figsize=(15, 5))
     y_pred = np.argmax(y_probs, axis=1)
     max_probs = np.max(y_probs, axis=1)

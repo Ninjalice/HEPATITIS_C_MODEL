@@ -156,7 +156,7 @@ def prepare_features(data: pd.DataFrame) -> pd.DataFrame:
     
     return X_imputed, y, imputer
 
-def split_and_scale_data(X: pd.DataFrame, y: pd.Series, test_size: float = 0.2, random_state: int = 42) -> tuple(np.ndarray, np.ndarray, pd.Series, pd.Series, StandardScaler):
+def split_and_scale_data(X: pd.DataFrame, y: pd.Series, test_size: float = 0.2, random_state: int = 42) -> tuple[np.ndarray, np.ndarray, pd.Series, pd.Series, StandardScaler]:
     """
     Split and scale the dataset.
 
