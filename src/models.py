@@ -1,3 +1,4 @@
+from __future__ import annotations
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -12,14 +13,14 @@ class HepatitisDataset(Dataset):
     """
     Custom Dataset for Hepatitis data.
 
-    Parameters:
+    Parameters
     -----------
     X : np.ndarray or pd.DataFrame
         Feature matrix.
     y : np.ndarray or pd.Series    
         Target vector.
 
-    Attributes:
+    Attributes
     -----------
     X : torch.FloatTensor
         Feature matrix as a FloatTensor.
@@ -41,7 +42,7 @@ class HepatitisNet(nn.Module):
     """
     Neural Network for Hepatitis C classification.
 
-    Parameters:
+    Parameters
     -----------
     input_size : int
         Number of input features.
@@ -52,7 +53,7 @@ class HepatitisNet(nn.Module):
     dropout_rate : float
         Dropout rate for regularization.
 
-    Attributes:
+    Attributes
     -----------
     network : nn.Sequential
         The sequential model containing all layers.
@@ -103,14 +104,14 @@ class ModelTrainer:
     """
     Class to handle training and validation of the HepatitisNet model.
 
-    Parameters:
+    Parameters
     -----------
     model : nn.Module
         The neural network model to be trained.
     device : str
         Device to run the training on ('cpu' or 'cuda').
     
-    Attributes:
+    Attributes
     -----------
     model : nn.Module
         The neural network model to be trained.
@@ -217,7 +218,7 @@ def evaluate_model(model: nn.Module, test_loader: DataLoader, device: str = 'cpu
     """
     Evaluate the model on the test dataset.
     
-    Parameters:
+    Parameters
     -----------
     model : nn.Module
         The trained model to be evaluated.
@@ -226,14 +227,14 @@ def evaluate_model(model: nn.Module, test_loader: DataLoader, device: str = 'cpu
     device : str
         Device to run the evaluation on (default: 'cpu').
 
-    Returns:
+    Returns
     -----------
     tuple[np.ndarray, np.ndarray, np.ndarray]
         - y_true: Ground truth labels.
         - y_pred: Predicted labels.
         - y_probs: Predicted probabilities.
 
-    Examples:
+    Examples
     ---------
     >>> y_true, y_pred, y_probs = evaluate_model(model, test_loader, device='cuda')
     """
@@ -259,7 +260,7 @@ def save_model(model: nn.Module, filepath: str, additional_info: dict = None) ->
     """
     Save the model to a file.
 
-    Parameters:
+    Parameters
     -----------
     model : nn.Module
         The model to be saved.
@@ -269,7 +270,7 @@ def save_model(model: nn.Module, filepath: str, additional_info: dict = None) ->
         Any additional information to save with the model (e.g., training parameters).
         
 
-    Examples:
+    Examples
     ---------
     >>> save_model(model, 'models/hepatitis_model.pth', {'input_size': 12, 'num_classes': 2})
     """
@@ -285,7 +286,7 @@ def load_model(filepath: str, model_class: type[HepatitisNet] = HepatitisNet, in
     """
     Load a model from a file.
     
-    Parameters:
+    Parameters
     -----------
     filepath : str
         Path to the file from which the model will be loaded.
@@ -294,13 +295,13 @@ def load_model(filepath: str, model_class: type[HepatitisNet] = HepatitisNet, in
     input_size : int
         Number of input features (default: 12).
 
-    Returns:
+    Returns
     -----------
     tuple[nn.Module, dict]
         - model: The loaded model.
         - additional_info: Any additional information saved with the model.
     
-    Examples:
+    Examples
     ---------
     >>> model, info = load_model('models/hepatitis_model.pth')
     >>> print(info)
@@ -317,7 +318,7 @@ class TorchWrapper(BaseEstimator, ClassifierMixin):
     """
     A wrapper to make PyTorch models compatible with scikit-learn.
     
-    Parameters:
+    Parameters
     -----------
     model : HepatitisNet
         The PyTorch model instance.
@@ -326,7 +327,7 @@ class TorchWrapper(BaseEstimator, ClassifierMixin):
     classes : array-like
         Class labels for the classifier.
 
-    Attributes:
+    Attributes
     -----------
     model : HepatitisNet
         The PyTorch model instance.
@@ -335,7 +336,7 @@ class TorchWrapper(BaseEstimator, ClassifierMixin):
     classes_ : array-like
         Class labels for the classifier.
 
-    Examples:
+    Examples
     ---------
     >>> model, _ = load_model('models/hepatitis_model.pth')
     >>> wrapper = TorchWrapper(model, device='cuda', classes=[0, 1])
@@ -346,8 +347,7 @@ class TorchWrapper(BaseEstimator, ClassifierMixin):
         self.model = model
         self.device = device
         self.classes_ = classes
-    
-    def fit(self, X: np.ndarray, y: np.ndarray) -> type[TorchWrapper]:
+    def fit(self, X: np.ndarray, y: np.ndarray) -> TorchWrapper:
         return self
     
     def predict_proba(self, X: np.ndarray) -> np.ndarray:

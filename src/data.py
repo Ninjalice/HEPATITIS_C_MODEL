@@ -8,17 +8,17 @@ def load_raw_data(filepath: str ='data/raw/hepatitis_data.csv') -> pd.DataFrame:
     '''
     Load raw data from a CSV file.
     
-    Parameters:
+    Parameters
     ------------
     filepath : str
         Path to the CSV file to be loaded.
 
-    Returns:
+    Returns
     ------------
     pd.DataFrame
         Loaded dataset as a pandas DataFrame.   
 
-    Examples:
+    Examples
     ---------
     >>> df = load_raw_data()
     >>> df.head()
@@ -54,17 +54,17 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
     """
     Clean and preprocess the dataset.
     
-    Parameters:
+    Parameters
     ------------
     df : pd.DataFrame
         Raw dataset to be cleaned.
         
-    Returns:
+    Returns
     ------------
     pd.DataFrame
         Cleaned dataset with necessary transformations applied.
 
-    Examples:
+    Examples
     ---------
     >>> cleaned_df = clean_data(df)
     >>> cleaned_df.head()
@@ -83,17 +83,17 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
         """
         Simplify the category labels.
 
-        Parameters:
+        Parameters
         ------------
         category : str
             Original category label.
 
-        Returns:
+        Returns
         ------------
         int
             Simplified category label. 0 for healthy, 1 for hepatitis C.
 
-        Examples:
+        Examples
         ---------
         >>> simplify_category('0=Blood Donor')
         0
@@ -121,17 +121,17 @@ def prepare_features(data: pd.DataFrame) -> pd.DataFrame:
     """
     Prepare features for modeling.
 
-    Parameters:
+    Parameters
     ------------
     data : pd.DataFrame
         Cleaned dataset with necessary transformations applied.
 
-    Returns:
+    Returns
     ------------
     pd.DataFrame
         Feature matrix ready for modeling.
 
-    Examples:
+    Examples
     ---------
     >>> prepared_features = prepare_features(cleaned_df)
     >>> prepared_features.head()
@@ -160,7 +160,7 @@ def split_and_scale_data(X: pd.DataFrame, y: pd.Series, test_size: float = 0.2, 
     """
     Split and scale the dataset.
 
-    Parameters:
+    Parameters
     ------------
     X : pd.DataFrame
         Feature matrix.
@@ -171,7 +171,7 @@ def split_and_scale_data(X: pd.DataFrame, y: pd.Series, test_size: float = 0.2, 
     random_state : int
         Random seed for reproducibility.
 
-    Returns:
+    Returns
     ------------
     tuple
         (X_train_scaled, X_test_scaled, y_train, y_test, scaler)

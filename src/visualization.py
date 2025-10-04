@@ -1,3 +1,4 @@
+from __future__ import annotations
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
@@ -7,7 +8,23 @@ import pandas as pd
 plt.style.use('default')
 sns.set_palette("inferno")
 
-def plot_data_overview(df):
+def plot_data_overview(df: pd.DataFrame) -> plt.Figure:
+    """
+    Generate an overview of the dataset with key statistics and visualizations. \
+    Includes a bar plot of disease categories, a histogram of age distribution  \
+    of patients, a bar plot of sex distribution, and missing value counts per column.
+
+    Parameters
+    ----------
+    df: pd.DataFrame
+        DataFrame containing the data
+
+    Returns
+    -------
+    fig: plt.Figure
+        Matplotlib figure object containing the overview plots.
+    """
+
     fig, axes = plt.subplots(2, 2, figsize=(15, 10))
     
     if 'Category' in df.columns:
@@ -67,7 +84,21 @@ def plot_data_overview(df):
     plt.tight_layout()
     return fig
 
-def plot_correlation_matrix(df):
+def plot_correlation_matrix(df: pd.DataFrame) -> plt.Figure:
+    """
+    Plot a clustered correlation matrix for numeric features in the DataFrame.
+    
+    Parameters
+    ----------
+    df: pd.DataFrame
+        DataFrame containing the data
+
+    Returns
+    -------
+    plt.Figure
+        Matplotlib figure object containing the correlation matrix plot.
+    """
+
     from scipy.cluster.hierarchy import linkage, dendrogram
     from scipy.spatial.distance import squareform
     
@@ -102,7 +133,23 @@ def plot_correlation_matrix(df):
         print("Not enough numeric columns for correlation matrix")
         return None
 
-def plot_feature_distributions(df, target_col='target'):
+def plot_feature_distributions(df: pd.DataFrame, target_col: str = 'target') -> plt.Figure:
+    """
+    Create histograms of feature distributions for each numeric feature, separated by target class.
+    
+    Parameters
+    ----------
+    df: pd.DataFrame
+        DataFrame containing the data
+    target_col: str
+        Name of the target column to separate classes. Default is 'target'.
+
+    Returns
+    -------
+    plt.Figure
+        Matplotlib figure object containing the feature distribution histograms.
+    """
+
     numeric_cols = ['ALB', 'ALP', 'ALT', 'AST', 'BIL', 'CHE', 'CHOL', 'CREA', 'GGT', 'PROT']
     available_cols = [col for col in numeric_cols if col in df.columns]
     
@@ -141,12 +188,17 @@ def plot_violin_with_outliers(df, numeric_cols=None):
     """
     Create violin plots with overlaid box plots to show outliers for each numeric feature.
     
-    Parameters:
-    df: DataFrame containing the data
-    numeric_cols: List of column names to plot. If None, uses default hepatitis C features.
-    
-    Returns:
-    matplotlib figure object
+    Parameters
+    ----------
+    df: pd.DataFrame
+        DataFrame containing the data
+    numeric_cols: list[str]
+        List of column names to plot. If None, uses default hepatitis C features.
+
+    Returns
+    -------
+    plt.Figure
+        Matplotlib figure object containing the violin plots with outliers.
     """
     if numeric_cols is None:
         numeric_cols = ['Age','ALB','ALP','ALT','AST','BIL','CHE','CHOL','CREA','GGT','PROT']
@@ -180,7 +232,21 @@ def plot_violin_with_outliers(df, numeric_cols=None):
     plt.tight_layout()
     return fig
 
-def plot_training_history(history):
+def plot_training_history(history: dict) -> plt.Figure:
+    """
+    Plot training and validation loss and accuracy over epochs.
+
+    Parameters
+    ----------
+    history: dict
+        Dictionary containing training history with keys 'train_loss', 'val_loss', 'train_acc', 'val_acc'.
+
+    Returns
+    -------
+    plt.Figure
+        Matplotlib figure object containing the training history plots.
+    """
+
     fig, axes = plt.subplots(1, 2, figsize=(15, 5))
 
     axes[0].plot(history['train_loss'], label='Training Loss', linewidth=2, color=sns.color_palette("inferno", 10)[0])
@@ -206,7 +272,7 @@ def plot_confusion_matrix(y_true: np.ndarray, y_pred: np.ndarray, class_names: l
     """
     Plot confusion matrix with option for percentages or absolute values.
     
-    Parameters:
+    Parameters
     -----------
     y_true: np.ndarray
         Ground truth labels.
@@ -217,7 +283,7 @@ def plot_confusion_matrix(y_true: np.ndarray, y_pred: np.ndarray, class_names: l
     use_percentages: bool
         If True, show percentages by true class; if False, show absolute counts
 
-    Returns:
+    Returns
     --------
     plt.Figure
         Matplotlib figure object containing the confusion matrix plot.
@@ -251,19 +317,19 @@ def plot_roc_curve(y_true: np.ndarray, y_probs: np.ndarray) -> plt.Figure:
     """
     Plot ROC curve with AUC.
 
-    Parameters:
+    Parameters
     -----------
     y_true: np.ndarray
         Ground truth binary labels.
     y_probs: np.ndarray
         Predicted probabilities for the positive class.
 
-    Returns:
+    Returns
     --------
     plt.Figure
         Matplotlib figure object containing the ROC curve plot.
 
-    Examples:
+    Examples
     ---------
     >>> fig = plot_roc_curve(y_true, y_probs)
     >>> fig.show()
@@ -289,19 +355,19 @@ def plot_precision_recall_curve(y_true: np.ndarray, y_probs: np.ndarray) -> plt.
     """
     Plot precision-recall curve with AUC.
 
-    Parameters:
+    Parameters
     -----------
     y_true: np.ndarray
         Ground truth binary labels.
     y_probs: np.ndarray
         Predicted probabilities for the positive class.
 
-    Returns:
+    Returns
     --------
     plt.Figure
         Matplotlib figure object containing the precision-recall curve plot.
 
-    Examples:
+    Examples
     ---------
     >>> fig = plot_precision_recall_curve(y_true, y_probs)
     >>> fig.show()
@@ -325,7 +391,7 @@ def plot_prediction_confidence(y_true: np.ndarray, y_probs: np.ndarray, class_na
     """
     Plot histograms of prediction confidence for each class, separated by predicted and true labels.
 
-    Parameters:
+    Parameters
     -----------
     y_true: np.ndarray
         Ground truth binary labels.
@@ -334,12 +400,12 @@ def plot_prediction_confidence(y_true: np.ndarray, y_probs: np.ndarray, class_na
     class_names: list of str
         Names of the classes for labeling.
 
-    Returns:
+    Returns
     --------
     plt.Figure
         Matplotlib figure object containing the prediction confidence histograms.
 
-    Examples:
+    Examples
     ---------
     >>> fig = plot_prediction_confidence(y_true, y_probs)
     >>> fig.show()
