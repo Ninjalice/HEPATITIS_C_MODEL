@@ -29,12 +29,17 @@ A simple machine learning project to predict Hepatitis C using PyTorch neural ne
     ├── requirements.txt      <- The requirements file for reproducing the environment
     └── README.md            <- The top-level README for developers
 
+
+## Docs
+
+You can check the modules docs in the docs folder or directly from the deployed version on GH pages here: https://ninjalice.github.io/HEPATITIS_C_MODEL/src.html
+
 ## Getting Started
 
 1. Install dependencies:
 
    ```bash
-   pip install -r requirements.txt
+   uv sync --frozen
    ```
 
 2. Download the dataset from Kaggle and place it in `data/raw/hepatitis_data.csv`
@@ -43,7 +48,7 @@ A simple machine learning project to predict Hepatitis C using PyTorch neural ne
    - `01-data-exploration.ipynb` - Explore the dataset
    - `02-data-preprocessing.ipynb` - Clean and prepare data
    - `03-model-training.ipynb` - Train the neural network
-   - `04-model-prediction.ipynb` - Make predictions on new data
+   - `04-model-prediction.ipynb` - Make predictions on new data(WIP)
 
 ## Dataset
 
