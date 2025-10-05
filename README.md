@@ -41,6 +41,7 @@ You can check the modules docs in the docs folder or directly from the deployed 
    ```bash
    uv sync --frozen
    ```
+   Alternatively ```bash pip install -r requirements.txt``` should also work.
 
 2. Download the dataset from Kaggle and place it in `data/raw/hepatitis_data.csv`
 
