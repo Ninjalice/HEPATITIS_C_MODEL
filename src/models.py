@@ -38,9 +38,28 @@ class HepatitisDataset(Dataset):
     def __getitem__(self, idx: int):
         return self.X[idx], self.y[idx]
 
+class ResidualBlock(nn.Module):
+    """
+    Residual block with layer normalization and dropout.
+    """
+    def __init__(self, size: int, dropout_rate: float = 0.3):
+        super(ResidualBlock, self).__init__()
+        self.block = nn.Sequential(
+            nn.LayerNorm(size),
+            nn.Linear(size, size),
+            nn.ReLU(),
+            nn.Dropout(dropout_rate),
+            nn.LayerNorm(size),
+            nn.Linear(size, size),
+            nn.Dropout(dropout_rate)
+        )
+    
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return x + self.block(x)
+
 class HepatitisNet(nn.Module):
     """
-    Neural Network for Hepatitis C classification.
+    Neural Network for Hepatitis C classification with residual connections.
 
     Parameters
     -----------
@@ -52,11 +71,13 @@ class HepatitisNet(nn.Module):
         Number of output classes.
     dropout_rate : float
         Dropout rate for regularization.
+    num_residual_blocks : int
+        Number of residual blocks to use.
 
     Attributes
     -----------
-    network : nn.Sequential
-        The sequential model containing all layers.
+    layers : nn.ModuleList
+        List of network layers including residual blocks.
     input_size : int
         Number of input features.
     num_classes : int
@@ -64,27 +85,42 @@ class HepatitisNet(nn.Module):
     """
 
 
-    def __init__(self, input_size: int = 12, hidden_sizes: list = [128, 64, 32], num_classes: int = 2, dropout_rate: float = 0.3):
+    def __init__(self, input_size: int = 12, hidden_sizes: list = [128, 64, 32], 
+                 num_classes: int = 2, dropout_rate: float = 0.3, num_residual_blocks: int = 2):
         super(HepatitisNet, self).__init__()
         
         self.input_size = input_size
         self.num_classes = num_classes
 
-        layers = []
-        prev_size = input_size
+        # Build network architecture
+        layers = nn.ModuleList()
         
-        for hidden_size in hidden_sizes:
-            layers.extend([
-                nn.Linear(prev_size, hidden_size),
-                nn.BatchNorm1d(hidden_size),
-                nn.ReLU(),
-                nn.Dropout(dropout_rate)
-            ])
-            prev_size = hidden_size
+        # Input projection
+        layers.append(nn.Linear(input_size, hidden_sizes[0]))
+        layers.append(nn.LayerNorm(hidden_sizes[0]))
+        layers.append(nn.ReLU())
+        layers.append(nn.Dropout(dropout_rate))
         
-        layers.append(nn.Linear(prev_size, num_classes))
+        # Add residual blocks at each hidden layer
+        for i in range(len(hidden_sizes) - 1):
+            # Add residual blocks
+            for _ in range(num_residual_blocks):
+                layers.append(ResidualBlock(hidden_sizes[i], dropout_rate))
+            
+            # Project to next hidden size
+            layers.append(nn.Linear(hidden_sizes[i], hidden_sizes[i + 1]))
+            layers.append(nn.LayerNorm(hidden_sizes[i + 1]))
+            layers.append(nn.ReLU())
+            layers.append(nn.Dropout(dropout_rate))
         
-        self.network = nn.Sequential(*layers)
+        # Add final residual blocks
+        for _ in range(num_residual_blocks):
+            layers.append(ResidualBlock(hidden_sizes[-1], dropout_rate))
+        
+        # Output projection
+        layers.append(nn.Linear(hidden_sizes[-1], num_classes))
+        
+        self.layers = layers
         self._initialize_weights()
     
     def _initialize_weights(self):
@@ -98,7 +134,9 @@ class HepatitisNet(nn.Module):
                 nn.init.constant_(module.bias, 0)
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self.network(x)
+        for layer in self.layers:
+            x = layer(x)
+        return x
 
 class ModelTrainer:
     """

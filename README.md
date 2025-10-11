@@ -1,6 +1,8 @@
 # Hepatitis C Predictor
 
-A simple machine learning project to predict Hepatitis C using PyTorch neural networks.
+A machine learning project to predict Hepatitis C using PyTorch neural networks.
+
+[![Documentation Status](https://img.shields.io/badge/docs-latest-brightgreen.svg)](https://ninjalice.github.io/HEPATITIS_C_MODEL/src.html)
 
 ## Project Organization
 
@@ -65,6 +67,37 @@ The dataset contains laboratory values from blood donors and Hepatitis C patient
 - **Architecture**: Deep Neural Network (12 → 128 → 64 → 32 → 2)
 - **Framework**: PyTorch
 - **Expected Accuracy**: ~97.5%
+
+## Contributing
+
+We welcome contributions! Please follow these steps:
+
+1. Fork the repository
+2. Create a feature branch:
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
+3. Make your changes
+4. Run tests and ensure documentation is updated
+5. Commit your changes:
+   ```bash
+   git commit -m "Add detailed description of your changes"
+   ```
+6. Push to your fork:
+   ```bash
+   git push origin feature/your-feature-name
+   ```
+7. Create a Pull Request
+
+### Code Style
+- Follow PEP 8 guidelines
+- Include docstrings for all functions and classes
+- Add comments for complex logic
+- Update documentation when changing functionality
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## Important Note
 
