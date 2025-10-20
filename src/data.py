@@ -3,10 +3,55 @@ import numpy as np
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.impute import SimpleImputer
+import os
+import urllib.request
+import zipfile
+
+def download_dataset(target_path: str = 'data/raw/hepatitis_data.csv') -> bool:
+    """
+    Download the Hepatitis C dataset from a public source if not already present.
+    
+    Parameters
+    ------------
+    target_path : str
+        Path where the dataset should be saved.
+        
+    Returns
+    ------------
+    bool
+        True if download was successful or file already exists, False otherwise.
+        
+    Examples
+    ---------
+    >>> download_dataset()
+    True
+    """
+    if os.path.exists(target_path):
+        print(f"Dataset already exists at: {target_path}")
+        return True
+    
+    # Create directory if it doesn't exist
+    os.makedirs(os.path.dirname(target_path), exist_ok=True)
+    
+    # URL to a reliable source - using a direct CSV link
+    # This is the UCI ML Repository version of the dataset
+    url = "https://archive.ics.uci.edu/ml/machine-learning-databases/00571/hcvdat0.csv"
+    
+    try:
+        print(f"Downloading dataset from {url}...")
+        urllib.request.urlretrieve(url, target_path)
+        print(f"✅ Dataset downloaded successfully to: {target_path}")
+        return True
+    except Exception as e:
+        print(f"❌ Error downloading dataset: {e}")
+        print("\n📌 Alternative: Download manually from:")
+        print("   https://www.kaggle.com/datasets/fedesoriano/hepatitis-c-dataset")
+        print(f"   and place it in: {target_path}")
+        return False
 
 def load_raw_data(filepath: str ='data/raw/hepatitis_data.csv') -> pd.DataFrame:
     '''
-    Load raw data from a CSV file.
+    Load raw data from a CSV file. If the file doesn't exist, attempts to download it automatically.
     
     Parameters
     ------------
@@ -33,8 +78,22 @@ def load_raw_data(filepath: str ='data/raw/hepatitis_data.csv') -> pd.DataFrame:
         return df
     except FileNotFoundError:
         print(f"File not found: {filepath}")
-        print("Please download the dataset from Kaggle and place it in data/raw/")
-        return None
+        print("Attempting to download dataset automatically...")
+        
+        if download_dataset(filepath):
+            # Try loading again after download
+            try:
+                df = pd.read_csv(filepath)
+                if 'Unnamed: 0' in df.columns:
+                    df = df.rename(columns={'Unnamed: 0': 'Patient ID'})
+                print(f"Dataset loaded successfully: {df.shape}")
+                return df
+            except Exception as e:
+                print(f"Error loading downloaded dataset: {e}")
+                return None
+        else:
+            print("Please download the dataset manually from Kaggle and place it in data/raw/")
+            return None
 
 def get_data_info(df):
     if df is None:  

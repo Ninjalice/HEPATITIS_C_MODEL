@@ -1,8 +1,39 @@
 [project]
-name = "hepatitis-c"
+name = "hepatitis-c-predictor"
 version = "0.1.0"
-description = "A machine learning project for Hepatitis C detection using PyTorch"
-requires-python = "==3.10.*"
+description = "A machine learning project for Hepatitis C detection using PyTorch with interactive Streamlit interface"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "Ninjalice", email = "your-email@example.com"}
+]
+keywords = ["machine-learning", "pytorch", "hepatitis-c", "classification", "streamlit", "medical-ai"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Healthcare Industry",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Medical Science Apps.",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.10",
+]
+
+[project.urls]
+Homepage = "https://github.com/Ninjalice/HEPATITIS_C_MODEL"
+Documentation = "https://ninjalice.github.io/HEPATITIS_C_MODEL/src.html"
+Repository = "https://github.com/Ninjalice/HEPATITIS_C_MODEL"
+Issues = "https://github.com/Ninjalice/HEPATITIS_C_MODEL/issues"
+
+[project.scripts]
+hepatitis-c-demo = "app:main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "black>=23.0.0",
+    "flake8>=6.0.0",
+]
 
 dependencies = [
     "asttokens~=3.0.0",
@@ -82,3 +113,14 @@ dependencies = [
 
 [tool.pdoc]
 output-directory = "docs"
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
+
+[tool.setuptools.package-data]
+"*" = ["*.txt", "*.md"]

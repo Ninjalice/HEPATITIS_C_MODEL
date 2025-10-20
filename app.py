@@ -555,3 +555,11 @@ def model_evaluation_page(X_test, y_test, data):
 
 if __name__ == "__main__":
     main()
+
+def cli_main():
+    """Entry point for command-line interface."""
+    import sys
+    import subprocess
+    
+    # Launch Streamlit app
+    subprocess.run([sys.executable, "-m", "streamlit", "run", __file__])
