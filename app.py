@@ -18,9 +18,11 @@ import sys
 import time
 
 try:
-    from src.models import HepatitisNet, HepatitisDataset, ModelTrainer, evaluate_model, save_model, load_model
-    from src.data import load_raw_data, clean_data, prepare_features
+    from src.models import HepatitisNet, evaluate_model, save_model, load_model
+    from src.data import load_raw_data, clean_data, prepare_features, HepatitisDataset
+    from src.train import ModelTrainer
     from sklearn.preprocessing import LabelEncoder
+    from torch.utils.data import DataLoader
     # Try to import visualization functions
     try:
         from src.visualization import plot_correlation_matrix, plot_feature_distributions
@@ -553,13 +555,16 @@ def model_evaluation_page(X_test, y_test, data):
     )
     st.plotly_chart(fig, use_container_width=True)
 
-if __name__ == "__main__":
-    main()
-
 def cli_main():
     """Entry point for command-line interface."""
     import sys
     import subprocess
     
+    # Get the path to this file
+    app_path = __file__
+    
     # Launch Streamlit app
-    subprocess.run([sys.executable, "-m", "streamlit", "run", __file__])
+    subprocess.run([sys.executable, "-m", "streamlit", "run", app_path])
+
+if __name__ == "__main__":
+    main()

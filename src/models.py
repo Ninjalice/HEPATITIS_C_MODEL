@@ -1,42 +1,21 @@
+"""
+Neural network model definitions for Hepatitis C classification.
+
+This module contains only the model architecture definitions,
+following the separation of concerns principle. Training logic is in train.py
+and data handling is in data.py.
+"""
+
 from __future__ import annotations
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import Dataset, DataLoader, TensorDataset
+from torch.utils.data import DataLoader
 import numpy as np
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 import pickle
 from sklearn.base import BaseEstimator, ClassifierMixin
 import time
-
-class HepatitisDataset(Dataset):
-    """
-    Custom Dataset for Hepatitis data.
-
-    Parameters
-    -----------
-    X : np.ndarray or pd.DataFrame
-        Feature matrix.
-    y : np.ndarray or pd.Series    
-        Target vector.
-
-    Attributes
-    -----------
-    X : torch.FloatTensor
-        Feature matrix as a FloatTensor.
-    y : torch.LongTensor
-        Target vector as a LongTensor.
-    """
-
-    def __init__(self, X: np.ndarray, y: np.ndarray):
-        self.X = torch.FloatTensor(X)
-        self.y = torch.LongTensor(y.values if hasattr(y, 'values') else y)
-    
-    def __len__(self):
-        return len(self.X)
-    
-    def __getitem__(self, idx: int):
-        return self.X[idx], self.y[idx]
 
 class ResidualBlock(nn.Module):
     """
@@ -138,119 +117,6 @@ class HepatitisNet(nn.Module):
             x = layer(x)
         return x
 
-class ModelTrainer:
-    """
-    Class to handle training and validation of the HepatitisNet model.
-
-    Parameters
-    -----------
-    model : nn.Module
-        The neural network model to be trained.
-    device : str
-        Device to run the training on ('cpu' or 'cuda').
-    
-    Attributes
-    -----------
-    model : nn.Module
-        The neural network model to be trained.
-    device : str
-        Device to run the training on ('cpu' or 'cuda').
-    history : dict
-        Dictionary to store training history.
-    """
-
-
-    def __init__(self, model: nn.Module, device: str = 'cpu'):
-        self.model = model.to(device)
-        self.device = device
-        self.history = {'train_loss': [], 'train_acc': [], 'val_loss': [], 'val_acc': []}
-
-    def train_epoch(self, train_loader: DataLoader, criterion: nn.Module, optimizer: optim.Optimizer) -> tuple[float, float]:
-        self.model.train()
-        total_loss = 0
-        correct = 0
-        total = 0
-        
-        for data, target in train_loader:
-            data, target = data.to(self.device), target.to(self.device)
-            
-            optimizer.zero_grad()
-            output = self.model(data)
-            loss = criterion(output, target)
-            loss.backward()
-            optimizer.step()
-            
-            total_loss += loss.item()
-            pred = output.argmax(dim=1)
-            correct += pred.eq(target).sum().item()
-            total += target.size(0)
-        
-        return total_loss / len(train_loader), 100. * correct / total
-
-    def validate_epoch(self, val_loader: DataLoader, criterion: nn.Module) -> tuple[float, float]:
-        self.model.eval()
-        total_loss = 0
-        correct = 0
-        total = 0
-        
-        with torch.no_grad():
-            for data, target in val_loader:
-                data, target = data.to(self.device), target.to(self.device)
-                output = self.model(data)
-                loss = criterion(output, target)
-                
-                total_loss += loss.item()
-                pred = output.argmax(dim=1)
-                correct += pred.eq(target).sum().item()
-                total += target.size(0)
-        
-        return total_loss / len(val_loader), 100. * correct / total
-
-    def train(self, train_loader: DataLoader, val_loader: DataLoader, epochs: int = 50, learning_rate: float = 0.001) -> dict:
-        criterion = nn.CrossEntropyLoss()
-        optimizer = optim.Adam(self.model.parameters(), lr=learning_rate, weight_decay=1e-4)
-        scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=5)
-        
-        best_val_acc = 0
-        patience_counter = 0
-        patience = 10
-        
-        print(f"Training on {self.device}")
-        print(f"Epochs: {epochs}, Learning Rate: {learning_rate}")
-        print("-" * 50)
-        
-        start_time = time.time()
-        
-        for epoch in range(epochs):
-            train_loss, train_acc = self.train_epoch(train_loader, criterion, optimizer)
-            val_loss, val_acc = self.validate_epoch(val_loader, criterion)
-            scheduler.step(val_loss)
-            
-            self.history['train_loss'].append(train_loss)
-            self.history['train_acc'].append(train_acc)
-            self.history['val_loss'].append(val_loss)
-            self.history['val_acc'].append(val_acc)
-            
-            if epoch % 10 == 0:
-                print(f'Epoch {epoch:3d}: Train Loss: {train_loss:.4f}, Train Acc: {train_acc:.1f}%, '
-                      f'Val Loss: {val_loss:.4f}, Val Acc: {val_acc:.1f}%')
-            
-            if val_acc > best_val_acc:
-                best_val_acc = val_acc
-                patience_counter = 0
-                self.best_model_state = self.model.state_dict().copy()
-            else:
-                patience_counter += 1
-                if patience_counter >= patience:
-                    print(f"Early stopping at epoch {epoch}")
-                    break
-        
-        self.model.load_state_dict(self.best_model_state)
-        training_time = time.time() - start_time
-        print(f"\nTraining completed in {training_time:.2f} seconds")
-        print(f"Best validation accuracy: {best_val_acc:.2f}%")
-        
-        return self.history
 
 def evaluate_model(model: nn.Module, test_loader: DataLoader, device: str = 'cpu') -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """

@@ -6,6 +6,45 @@ from sklearn.impute import SimpleImputer
 import os
 import urllib.request
 import zipfile
+import torch
+from torch.utils.data import Dataset
+
+class HepatitisDataset(Dataset):
+    """
+    Custom PyTorch Dataset for Hepatitis data.
+    
+    This dataset can be reused with different models and training approaches.
+
+    Parameters
+    -----------
+    X : np.ndarray or pd.DataFrame
+        Feature matrix.
+    y : np.ndarray or pd.Series    
+        Target vector.
+
+    Attributes
+    -----------
+    X : torch.FloatTensor
+        Feature matrix as a FloatTensor.
+    y : torch.LongTensor
+        Target vector as a LongTensor.
+        
+    Examples
+    ---------
+    >>> from src.data import HepatitisDataset
+    >>> dataset = HepatitisDataset(X_train, y_train)
+    >>> loader = DataLoader(dataset, batch_size=32, shuffle=True)
+    """
+
+    def __init__(self, X: np.ndarray, y: np.ndarray):
+        self.X = torch.FloatTensor(X)
+        self.y = torch.LongTensor(y.values if hasattr(y, 'values') else y)
+    
+    def __len__(self):
+        return len(self.X)
+    
+    def __getitem__(self, idx: int):
+        return self.X[idx], self.y[idx]
 
 def download_dataset(target_path: str = 'data/raw/hepatitis_data.csv') -> bool:
     """
