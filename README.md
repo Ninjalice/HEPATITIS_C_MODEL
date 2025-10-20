@@ -1,14 +1,14 @@
 ---
-title: Streamlit Template Space
+title: Hepatitis C Predictor
 emoji: 🚀
 colorFrom: red
 colorTo: red
 sdk: docker
 app_port: 8501
 tags:
-  - streamlit
+- streamlit
 pinned: false
-short_description: Streamlit template space
+short_description: An Hepatitis C predictor
 ---
 
 # Welcome to Streamlit!
