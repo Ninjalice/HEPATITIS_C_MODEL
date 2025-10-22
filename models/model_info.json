@@ -1,6 +1,6 @@
 {
   "accuracy": 0.959349593495935,
-  "loss": 0.11107575241476297,
+  "loss": 0.19950472406344488,
   "epochs": 50,
   "architecture": "Deep Neural Network (12-128-64-32-2)",
   "test_samples": 123,
