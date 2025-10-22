@@ -4,13 +4,7 @@ A machine learning project to predict Hepatitis C using PyTorch neural networks.
 
 [![Documentation Status](https://img.shields.io/badge/docs-latest-brightgreen.svg)](https://ninjalice.github.io/HEPATITIS_C_MODEL/src.html)
 
-## 🚀 Live Demo
-
-Try the interactive demo without installing anything:
-
-- **[Launch on Hugging Face Spaces](https://huggingface.co/spaces/Krypto02/hepatitis-c-predictor)** (Coming soon!)
-
-Or run it locally:
+To run it locally:
 
 ```bash
 streamlit run app.py
@@ -44,12 +38,12 @@ streamlit run app.py
     ├── src/                  <- Source code for use in this project
     │   ├── __init__.py
     │   ├── data.py           <- Scripts to download or generate data
-    │   ├── features.py       <- Scripts to turn raw data into features
+    │   ├── train.py          <- Scripts to train models
     │   ├── models.py         <- Scripts to train models and make predictions
     │   └── visualization.py  <- Scripts to create exploratory visualizations
     │
     ├── requirements.txt      <- The requirements file for reproducing the environment
-    └── README.md            <- The top-level README for developers
+    └── README.md             <- The top-level README for developers
 
 
 ## Docs
