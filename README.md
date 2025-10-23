@@ -1,6 +1,6 @@
 # Hepatitis C Predictor
 
-A machine learning project to predict Hepatitis C using PyTorch neural networks.
+Developing a Deep Learning model with PyTorch to identify patterns and predict the presence of Hepatitis C from patient data, paving the way for faster, more accurate diagnostics.
 
 [![Documentation Status](https://img.shields.io/badge/docs-latest-brightgreen.svg)](https://ninjalice.github.io/HEPATITIS_C_MODEL/src.html)
 
