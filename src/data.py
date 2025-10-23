@@ -8,6 +8,7 @@ import urllib.request
 import zipfile
 import torch
 from torch.utils.data import Dataset
+import tempfile
 
 class HepatitisDataset(Dataset):
     """
@@ -46,7 +47,7 @@ class HepatitisDataset(Dataset):
     def __getitem__(self, idx: int):
         return self.X[idx], self.y[idx]
 
-def download_dataset(target_path: str = 'data/raw/hepatitis_data.csv') -> bool:
+def download_dataset(target_path: str = 'data/raw/hepatitis_data.csv', demo: bool = False) -> bool:
     """
     Download the Hepatitis C dataset from a public source if not already present.
     
@@ -54,6 +55,8 @@ def download_dataset(target_path: str = 'data/raw/hepatitis_data.csv') -> bool:
     ------------
     target_path : str
         Path where the dataset should be saved.
+    demo : bool
+        If True, makes tempdirs and tempfiles deletable after use.
         
     Returns
     ------------
@@ -65,13 +68,18 @@ def download_dataset(target_path: str = 'data/raw/hepatitis_data.csv') -> bool:
     >>> download_dataset()
     True
     """
-    if os.path.exists(target_path):
-        print(f"Dataset already exists at: {target_path}")
-        return True
-    
-    # Create directory if it doesn't exist
-    os.makedirs(os.path.dirname(target_path), exist_ok=True)
-    
+    if demo:
+        target_path = os.path.join(tempfile.gettempdir(), 'hepatitis_data.csv')
+        print(f"Using temporary dataset path: {target_path}")
+
+    else:
+        if os.path.exists(target_path):
+            print(f"Dataset already exists at: {target_path}")
+            return True
+
+        # Create directory if it doesn't exist
+        os.makedirs(os.path.dirname(target_path), exist_ok=True)
+
     # URL to a reliable source - using a direct CSV link
     # This is the UCI ML Repository version of the dataset
     url = "https://archive.ics.uci.edu/ml/machine-learning-databases/00571/hcvdat0.csv"
@@ -80,6 +88,8 @@ def download_dataset(target_path: str = 'data/raw/hepatitis_data.csv') -> bool:
         print(f"Downloading dataset from {url}...")
         urllib.request.urlretrieve(url, target_path)
         print(f"✅ Dataset downloaded successfully to: {target_path}")
+        if demo:
+            return target_path
         return True
     except Exception as e:
         print(f"❌ Error downloading dataset: {e}")
@@ -88,7 +98,7 @@ def download_dataset(target_path: str = 'data/raw/hepatitis_data.csv') -> bool:
         print(f"   and place it in: {target_path}")
         return False
 
-def load_raw_data(filepath: str ='data/raw/hepatitis_data.csv') -> pd.DataFrame:
+def load_raw_data(filepath: str ='data/raw/hepatitis_data.csv', demo: bool = False) -> pd.DataFrame:
     '''
     Load raw data from a CSV file. If the file doesn't exist, attempts to download it automatically.
     
@@ -96,6 +106,8 @@ def load_raw_data(filepath: str ='data/raw/hepatitis_data.csv') -> pd.DataFrame:
     ------------
     filepath : str
         Path to the CSV file to be loaded.
+    demo : bool
+        If True, uses a temporary file path for demo purposes.
 
     Returns
     ------------

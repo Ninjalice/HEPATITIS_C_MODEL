@@ -5,19 +5,23 @@ This package provides machine learning tools for Hepatitis C classification
 using PyTorch neural networks with an interactive Streamlit interface.
 
 Modules
---------
+-------
 data
+
     Data loading, preprocessing, and dataset creation utilities.
     Contains HepatitisDataset class for PyTorch data loading.
     
 models
+
     Neural network model definitions (HepatitisNet with residual connections).
     Includes model saving/loading and evaluation utilities.
-    
+
 train
+
     Training utilities and ModelTrainer class for model training workflows.
-    
+
 visualization
+
     Plotting and visualization functions for data exploration and results.
 
 Quick Start
@@ -44,10 +48,12 @@ Quick Start
 Authors
 -------
 - Ninjalice (https://github.com/Ninjalice)
+- Yngvine (https://github.com/Yngvine)
+- Krypto02 (https://github.com/Krypto02)
 
 License
 -------
-MIT License - See LICENSE file for details.
+MIT License - See [LICENSE](https://github.com/Ninjalice/HEPATITIS_C_MODEL/blob/main/LICENSE) file for details.
 
 Repository
 ----------
@@ -62,45 +68,4 @@ __version__ = "0.1.0"
 __author__ = "Ninjalice"
 __license__ = "MIT"
 
-# Import key classes and functions for easier access
-from src.data import (
-    load_raw_data,
-    download_dataset,
-    clean_data,
-    prepare_features,
-    split_and_scale_data,
-    HepatitisDataset,
-    get_data_info
-)
 
-from src.models import (
-    HepatitisNet,
-    ResidualBlock,
-    evaluate_model,
-    save_model,
-    load_model,
-    TorchWrapper
-)
-
-from src.train import ModelTrainer
-
-# Define what's available when using "from src import *"
-__all__ = [
-    # Data
-    'load_raw_data',
-    'download_dataset',
-    'clean_data',
-    'prepare_features',
-    'split_and_scale_data',
-    'HepatitisDataset',
-    'get_data_info',
-    # Models
-    'HepatitisNet',
-    'ResidualBlock',
-    'evaluate_model',
-    'save_model',
-    'load_model',
-    'TorchWrapper',
-    # Training
-    'ModelTrainer',
-]

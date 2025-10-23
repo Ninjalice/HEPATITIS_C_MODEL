@@ -20,6 +20,24 @@ import time
 class ResidualBlock(nn.Module):
     """
     Residual block with layer normalization and dropout.
+
+    Parameters
+    -----------
+    size : int
+        Size of the input and output features.
+    dropout_rate : float
+        Dropout rate for regularization.
+
+    Attributes
+    -----------
+    block : nn.Sequential
+        Sequential container for the residual block layers.
+        
+    Examples
+    ---------
+    >>> block = ResidualBlock(size=128, dropout_rate=0.3)
+    >>> input_tensor = torch.randn(32, 128)
+    >>> output_tensor = block(input_tensor)
     """
     def __init__(self, size: int, dropout_rate: float = 0.3):
         super(ResidualBlock, self).__init__()

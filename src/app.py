@@ -19,7 +19,7 @@ import time
 
 try:
     from src.models import HepatitisNet, evaluate_model, save_model, load_model
-    from src.data import load_raw_data, clean_data, prepare_features, HepatitisDataset
+    from src.data import  download_dataset, load_raw_data, clean_data, prepare_features, HepatitisDataset
     from src.train import ModelTrainer
     from sklearn.preprocessing import LabelEncoder
     from torch.utils.data import DataLoader
@@ -72,9 +72,10 @@ st.markdown("""
 def load_sample_data():
     """Load and cache sample data"""
     try:
-        # Try to load real data first  
-        return load_raw_data()
-        
+        file_temp_path = download_dataset(demo=True)
+        # Try to load real data first
+        return load_raw_data(filepath=file_temp_path, demo=True)
+
     except Exception as e:
         st.error(f"Error loading data: {e}")
         return None
