@@ -49,11 +49,12 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ⚠️ This model is for educational purposes only. Do not use for actual medical diagnosis. Always consult healthcare professionals.
 
-To run it locally:
+To run a local demo:
 
 ```bash
 uvx --from hepatitis-c-predictor --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ hepatitis-c-demo
 ```
+The package if located [here](https://pypi.org/project/hepatitis-c-predictor/)
 
 ## Docs
 
