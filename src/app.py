@@ -18,6 +18,7 @@ try:
     from src.models import HepatitisNet, evaluate_model, save_model, load_model
     from src.data import  download_dataset, load_raw_data, clean_data, prepare_features, HepatitisDataset
     from src.train import ModelTrainer
+    from src.visualization_demo import *
     from sklearn.preprocessing import LabelEncoder
     from torch.utils.data import DataLoader
     # Try to import visualization functions
@@ -167,87 +168,17 @@ def data_exploration_page(data):
     
     # Feature distributions
     st.subheader("Feature Distributions")
-    
-    # Select only numeric features to plot
-    numeric_cols = data.select_dtypes(include=[np.number]).columns
-    feature_cols = [col for col in numeric_cols if col not in ['Category', 'target']]
-    
-    selected_features = st.multiselect(
-        "Select features to visualize:",
-        feature_cols,
-        default=feature_cols[:4] if len(feature_cols) >= 4 else feature_cols
-    )
-    
-    if selected_features:
-        # Create simple distribution plots without categories
-        fig = make_subplots(
-            rows=(len(selected_features) + 1) // 2, 
-            cols=2,
-            subplot_titles=selected_features
-        )
-        
-        for i, feature in enumerate(selected_features):
-            row = i // 2 + 1
-            col = i % 2 + 1
-            
-            # Simple histogram
-            fig.add_trace(
-                go.Histogram(
-                    x=data[feature],
-                    name=feature,
-                    showlegend=False
-                ),
-                row=row, col=col
-            )
-        
-        fig.update_layout(height=300 * ((len(selected_features) + 1) // 2))
-        st.plotly_chart(fig, use_container_width=True)
-    
+
+    display_features(data)
+
+    display_violin_with_outliers(data)
+
     # Correlation matrix
-    st.subheader("Correlation Matrix")
-    numeric_cols = data.select_dtypes(include=[np.number]).columns
-    corr_matrix = data[numeric_cols].corr()
-    
-    fig = px.imshow(
-        corr_matrix,
-        title="Feature Correlation Matrix",
-        color_continuous_scale="RdBu",
-        aspect="auto"
-    )
-    fig.update_layout(height=600)
-    st.plotly_chart(fig, use_container_width=True)
+    display_correlation_matrix(data)
     
     # Class distribution
-    st.subheader("Class Distribution")
+    display_class_distribution(data)
     
-    # Use target column if available, otherwise create binary from Category
-    if 'target' in data.columns:
-        class_counts = data['target'].value_counts().sort_index()
-        labels = ['Healthy', 'Hepatitis C']
-    else:
-        # Create simple binary classification
-        healthy_mask = data['Category'].str.contains('Blood Donor', na=False)
-        binary_target = (~healthy_mask).astype(int)
-        class_counts = pd.Series(binary_target).value_counts().sort_index()
-        labels = ['Healthy', 'Hepatitis C']
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        fig = px.pie(
-            values=class_counts.values,
-            names=labels,
-            title="Class Distribution"
-        )
-        st.plotly_chart(fig, use_container_width=True)
-    
-    with col2:
-        fig = px.bar(
-            x=labels,
-            y=class_counts.values,
-            title="Class Counts"
-        )
-        st.plotly_chart(fig, use_container_width=True)
 
 def model_training_page(X_train, X_val, y_train, y_val, data, model_path=''):
     st.markdown('<div class="section-header">🚀 Model Training</div>', unsafe_allow_html=True)
@@ -277,125 +208,17 @@ def model_training_page(X_train, X_val, y_train, y_val, data, model_path=''):
     # Training button
     if st.button("Start Training", type="primary"):
         # Create model
-        input_size = X_train.shape[1]
-        model = HepatitisNet(
-            input_size=input_size,
-            hidden_sizes=hidden_sizes_list,
-            num_classes=2,
+        modified_train_loop_with_visualization(
+            X_train, y_train, X_val, y_val,
+            epochs=epochs,
+            batch_size=batch_size,
+            learning_rate=learning_rate,
+            hidden_sizes_list=hidden_sizes_list,
             dropout_rate=dropout_rate,
-            num_residual_blocks=num_residual_blocks
+            num_residual_blocks=num_residual_blocks,
+            model_path=model_path
         )
-        
-        # Create data loaders
-        train_dataset = HepatitisDataset(X_train, y_train)
-        val_dataset = HepatitisDataset(X_val, y_val)
-        train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-        val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
-        
-        # Create trainer
-        device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        trainer = ModelTrainer(model, device)
-        
-        # Progress tracking
-        progress_bar = st.progress(0)
-        status_text = st.empty()
-        
-        # Create placeholders for real-time plots
-        col1, col2 = st.columns(2)
-        with col1:
-            loss_chart = st.empty()
-        with col2:
-            acc_chart = st.empty()
-        
-        # Modified training loop for real-time updates
-        criterion = nn.CrossEntropyLoss()
-        optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=1e-4)
-        
-        history = {'train_loss': [], 'train_acc': [], 'val_loss': [], 'val_acc': []}
-        
-        start_time = time.time()
-        
-        for epoch in range(epochs):
-            # Training
-            train_loss, train_acc = trainer.train_epoch(train_loader, criterion, optimizer)
-            val_loss, val_acc = trainer.validate_epoch(val_loader, criterion)
-            
-            # Update history
-            history['train_loss'].append(train_loss)
-            history['train_acc'].append(train_acc)
-            history['val_loss'].append(val_loss)
-            history['val_acc'].append(val_acc)
-            
-            # Update progress
-            progress = (epoch + 1) / epochs
-            progress_bar.progress(progress)
-            status_text.text(f'Epoch {epoch + 1}/{epochs} - Train Loss: {train_loss:.4f}, Val Acc: {val_acc:.2f}%')
-            
-            # Update plots every 5 epochs
-            if epoch % 5 == 0 or epoch == epochs - 1:
-                # Loss plot
-                with loss_chart.container():
-                    fig_loss = go.Figure()
-                    fig_loss.add_trace(go.Scatter(
-                        y=history['train_loss'],
-                        mode='lines',
-                        name='Train Loss',
-                        line=dict(color='blue')
-                    ))
-                    fig_loss.add_trace(go.Scatter(
-                        y=history['val_loss'],
-                        mode='lines',
-                        name='Validation Loss',
-                        line=dict(color='red')
-                    ))
-                    fig_loss.update_layout(title='Training Loss', xaxis_title='Epoch', yaxis_title='Loss')
-                    st.plotly_chart(fig_loss, use_container_width=True)
-                
-                # Accuracy plot
-                with acc_chart.container():
-                    fig_acc = go.Figure()
-                    fig_acc.add_trace(go.Scatter(
-                        y=history['train_acc'],
-                        mode='lines',
-                        name='Train Accuracy',
-                        line=dict(color='blue')
-                    ))
-                    fig_acc.add_trace(go.Scatter(
-                        y=history['val_acc'],
-                        mode='lines',
-                        name='Validation Accuracy',
-                        line=dict(color='red')
-                    ))
-                    fig_acc.update_layout(title='Training Accuracy', xaxis_title='Epoch', yaxis_title='Accuracy (%)')
-                    st.plotly_chart(fig_acc, use_container_width=True)
-        
-        training_time = time.time() - start_time
-        
-        # Training summary
-        st.success("Training completed!")
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            st.metric("Final Train Accuracy", f"{history['train_acc'][-1]:.2f}%")
-        with col2:
-            st.metric("Final Val Accuracy", f"{history['val_acc'][-1]:.2f}%")
-        with col3:
-            st.metric("Training Time", f"{training_time:.2f}s")
-        
-        # Save model
-        model_dir = os.path.join(os.path.dirname(__file__), 'saved_models')
-        os.makedirs(model_dir, exist_ok=True)
-        
-        additional_info = {
-            'input_size': input_size,
-            'hidden_sizes': hidden_sizes_list,
-            'num_classes': 2,
-            'dropout_rate': dropout_rate,
-            'num_residual_blocks': num_residual_blocks,
-            'final_val_acc': history['val_acc'][-1]
-        }
-        
-        saved_path = save_model(model, model_path, additional_info, demo=True)
-        st.info(f"Model saved to: {saved_path}")
+
 
 def model_evaluation_page(X_test, y_test, model_path, data):
     st.markdown('<div class="section-header">📈 Model Evaluation</div>', unsafe_allow_html=True)
@@ -454,45 +277,10 @@ def model_evaluation_page(X_test, y_test, model_path, data):
         st.metric("F1-Score", f"{f1:.3f}")
     
     # Confusion Matrix
-    st.subheader("Confusion Matrix")
-    cm = confusion_matrix(y_true, y_pred)
-    
-    fig = px.imshow(
-        cm,
-        text_auto=True,
-        aspect="auto",
-        title="Confusion Matrix",
-        labels=dict(x="Predicted", y="Actual"),
-        x=['Negative', 'Positive'],
-        y=['Negative', 'Positive']
-    )
-    st.plotly_chart(fig, use_container_width=True)
+    display_confusion_matrix(y_true, y_pred)
     
     # ROC Curve
-    st.subheader("ROC Curve")
-    fpr, tpr, _ = roc_curve(y_true, y_probs[:, 1])
-    roc_auc = auc(fpr, tpr)
-    
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(
-        x=fpr, y=tpr,
-        mode='lines',
-        name=f'ROC Curve (AUC = {roc_auc:.3f})',
-        line=dict(color='blue', width=2)
-    ))
-    fig.add_trace(go.Scatter(
-        x=[0, 1], y=[0, 1],
-        mode='lines',
-        name='Random Classifier',
-        line=dict(color='red', dash='dash')
-    ))
-    fig.update_layout(
-        title='ROC Curve',
-        xaxis_title='False Positive Rate',
-        yaxis_title='True Positive Rate',
-        width=600, height=400
-    )
-    st.plotly_chart(fig, use_container_width=True)
+    display_roc_curve(y_true, y_probs)
     
     # Prediction examples
     st.subheader("Sample Predictions")
@@ -525,30 +313,7 @@ def model_evaluation_page(X_test, y_test, model_path, data):
         st.divider()
     
     # Feature importance (using model weights)
-    st.subheader("Feature Importance Analysis")
-    
-    # Get first layer weights as proxy for feature importance
-    first_layer_weights = model.layers[0].weight.data.cpu().numpy()
-    feature_importance = np.abs(first_layer_weights).mean(axis=0)
-    
-    # Use the correct processed feature names
-    feature_names = ['Age', 'ALB', 'ALP', 'ALT', 'AST', 'BIL', 'CHE', 'CHOL', 'CREA', 'GGT', 'PROT', 'sex_encoded']
-    # Only use as many features as we actually have
-    available_features = min(len(feature_names), len(feature_importance))
-    
-    importance_df = pd.DataFrame({
-        'Feature': feature_names[:available_features],
-        'Importance': feature_importance[:available_features]
-    }).sort_values('Importance', ascending=True)
-    
-    fig = px.bar(
-        importance_df,
-        x='Importance',
-        y='Feature',
-        orientation='h',
-        title='Feature Importance (First Layer Weights)'
-    )
-    st.plotly_chart(fig, use_container_width=True)
+    display_feature_importance(model)
 
 def cli_main():
     """Entry point for command-line interface."""
