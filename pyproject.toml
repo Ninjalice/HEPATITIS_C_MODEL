@@ -1,6 +1,6 @@
 [project]
 name = "hepatitis-c-predictor"
-version = "0.4.3"
+version = "1.0.0"
 description = "Interactive ML application for Hepatitis C classification using PyTorch with Streamlit interface"
 readme = "README.md"
 requires-python = ">=3.10"
