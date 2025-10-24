@@ -54,7 +54,7 @@ To run a local demo:
 ```bash
 uvx --from hepatitis-c-predictor --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ hepatitis-c-demo
 ```
-The package if located [here](https://pypi.org/project/hepatitis-c-predictor/)
+The package is located [here](https://pypi.org/project/hepatitis-c-predictor/)
 
 ## Docs
 
