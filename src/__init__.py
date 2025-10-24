@@ -47,9 +47,9 @@ Quick Start
 
 Authors
 -------
-- Ninjalice (https://github.com/Ninjalice)
-- Yngvine (https://github.com/Yngvine)
-- Krypto02 (https://github.com/Krypto02)
+- Endika Aguirre (https://github.com/Ninjalice)
+- Igor Vons (https://github.com/Yngvine)
+- Wassim Bouzarhoun (https://github.com/Krypto02)
 
 License
 -------
@@ -67,5 +67,14 @@ https://ninjalice.github.io/HEPATITIS_C_MODEL/src.html
 __version__ = "0.1.0"
 __author__ = "Ninjalice"
 __license__ = "MIT"
+
+# Control what modules are exposed by this package
+__all__ = [
+    "data",
+    "models", 
+    "train",
+    "visualization"
+]
+
 
 

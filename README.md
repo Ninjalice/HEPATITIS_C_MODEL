@@ -62,31 +62,36 @@ You can check the modules docs in the docs folder or directly from the deployed 
 ## Getting Started
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/Ninjalice/HEPATITIS_C_MODEL.git
    cd HEPATITIS_C_MODEL
    ```
 
 2. Install dependencies:
+
    ```bash
    pip install -r requirements.txt
    ```
-   
+
    Or using `uv`:
+
    ```bash
    uv sync --frozen
    ```
 
 3. Run the interactive dashboard:
+
    ```bash
    streamlit run app.py
    ```
-   
+
    The app will automatically download the dataset if not present.
 
 ### Option 2: Jupyter Notebooks
 
 Follow the notebooks in order:
+
 1. `01-data-exploration.ipynb` - Explore the dataset
 2. `02-data-preprocessing.ipynb` - Clean and prepare data
 3. `03-model-training.ipynb` - Train the neural network
@@ -95,6 +100,7 @@ Follow the notebooks in order:
 ### Manual Download (Optional)
 
 If auto-download fails, you can manually download from:
+
 1. Kaggle: https://www.kaggle.com/datasets/fedesoriano/hepatitis-c-dataset
 2. Place the file in `data/raw/hepatitis_data.csv`
 
@@ -124,4 +130,3 @@ If auto-download fails, you can manually download from:
     │
     ├── requirements.txt      <- The requirements file for reproducing the environment
     └── README.md             <- The top-level README for developers
-
