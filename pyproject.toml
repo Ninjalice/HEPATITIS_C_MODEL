@@ -1,10 +1,10 @@
 [project]
 name = "hepatitis-c-predictor"
-version = "0.1.4"
+version = "0.1.5"
 description = "Interactive ML application for Hepatitis C classification using PyTorch with Streamlit interface"
 readme = "README.md"
 requires-python = ">=3.10"
-license = {text = "MIT"}
+license = "MIT"
 authors = [
     {name = "Endika"},
     {name = "Igor"},

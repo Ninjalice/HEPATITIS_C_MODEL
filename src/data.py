@@ -5,7 +5,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.impute import SimpleImputer
 import os
 import urllib.request
-import zipfile
 import torch
 from torch.utils.data import Dataset
 import tempfile

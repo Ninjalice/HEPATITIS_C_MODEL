@@ -1,8 +1,6 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -12,10 +10,9 @@ from torch.utils.data import DataLoader
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import confusion_matrix, classification_report, roc_curve, auc
-import pickle
 import os
-import sys
 import time
+import tempfile
 
 try:
     from src.models import HepatitisNet, evaluate_model, save_model, load_model
@@ -133,13 +130,13 @@ def main():
     
     # Prepare data
     X_train, X_val, X_test, y_train, y_val, y_test = prepare_data(data)
-    
+    saved_path = os.path.join(tempfile.gettempdir(), 'hepatitis_model.pth')
     if page == "Data Exploration":
         data_exploration_page(data)
     elif page == "Model Training":
-        model_training_page(X_train, X_val, y_train, y_val, data)
+        model_training_page(X_train, X_val, y_train, y_val, data, model_path=saved_path)
     elif page == "Model Evaluation":
-        model_evaluation_page(X_test, y_test, data)
+        model_evaluation_page(X_test, y_test, saved_path, data)
 
 def data_exploration_page(data):
     st.markdown('<div class="section-header">📊 Data Exploration</div>', unsafe_allow_html=True)
@@ -252,7 +249,7 @@ def data_exploration_page(data):
         )
         st.plotly_chart(fig, use_container_width=True)
 
-def model_training_page(X_train, X_val, y_train, y_val, data):
+def model_training_page(X_train, X_val, y_train, y_val, data, model_path=''):
     st.markdown('<div class="section-header">🚀 Model Training</div>', unsafe_allow_html=True)
     
     # Training parameters
@@ -387,7 +384,6 @@ def model_training_page(X_train, X_val, y_train, y_val, data):
         # Save model
         model_dir = os.path.join(os.path.dirname(__file__), 'saved_models')
         os.makedirs(model_dir, exist_ok=True)
-        model_path = os.path.join(model_dir, 'hepatitis_model.pth')
         
         additional_info = {
             'input_size': input_size,
@@ -398,17 +394,15 @@ def model_training_page(X_train, X_val, y_train, y_val, data):
             'final_val_acc': history['val_acc'][-1]
         }
         
-        save_model(model, model_path, additional_info)
-        st.info(f"Model saved to: {model_path}")
+        saved_path = save_model(model, model_path, additional_info, demo=True)
+        st.info(f"Model saved to: {saved_path}")
 
-def model_evaluation_page(X_test, y_test, data):
+def model_evaluation_page(X_test, y_test, model_path, data):
     st.markdown('<div class="section-header">📈 Model Evaluation</div>', unsafe_allow_html=True)
-    
-    # Check if saved model exists
-    model_path = os.path.join(os.path.dirname(__file__), 'saved_models', 'hepatitis_model.pth')
-    
+
+
     if not os.path.exists(model_path):
-        st.warning("No trained model found. Please train a model first in the 'Model Training' section.")
+        st.warning(f"No trained model found at {model_path or 'the default location'}. Please train a model first in the 'Model Training' section.")
         return
     
     # Load model

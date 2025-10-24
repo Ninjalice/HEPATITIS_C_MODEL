@@ -13,9 +13,9 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 import numpy as np
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
-import pickle
 from sklearn.base import BaseEstimator, ClassifierMixin
-import time
+import tempfile
+import os
 
 class ResidualBlock(nn.Module):
     """
@@ -178,7 +178,7 @@ def evaluate_model(model: nn.Module, test_loader: DataLoader, device: str = 'cpu
     
     return np.array(y_true), np.array(y_pred), np.array(y_probs)
 
-def save_model(model: nn.Module, filepath: str, additional_info: dict = None) -> None:
+def save_model(model: nn.Module, filepath: str, additional_info: dict = None, demo: bool = False) -> None:
     """
     Save the model to a file.
 
@@ -190,19 +190,28 @@ def save_model(model: nn.Module, filepath: str, additional_info: dict = None) ->
         Path to the file where the model will be saved.
     additional_info : dict, optional
         Any additional information to save with the model (e.g., training parameters).
-        
+    demo : bool, optional
+        Whether the model is being saved in a temp location demo mode (default: False).
+
+    Returns
+    -----------
+    str
+        The path to the saved model file.
 
     Examples
     ---------
     >>> save_model(model, 'models/hepatitis_model.pth', {'input_size': 12, 'num_classes': 2})
     """
 
+    if demo:
+        filepath = os.path.join(tempfile.gettempdir(), 'hepatitis_model.pth')
     torch.save({
         'model_state_dict': model.state_dict(),
         'model_class': model.__class__.__name__,
         'additional_info': additional_info
     }, filepath, _use_new_zipfile_serialization=False)
     print(f"Model saved to: {filepath}")
+    return filepath
 
 def load_model(filepath: str, model_class: type[HepatitisNet] = HepatitisNet, input_size: int = 12) -> tuple[nn.Module, dict]:
     """
